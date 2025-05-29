@@ -5,9 +5,11 @@ Visual Studio (рекомендуется версия 2022 или выше)
 Бесплатная версия: https://visualstudio.microsoft.com/ru/
 Платформа .NET (версия 5.0 или выше)
 Скачать можно здесь: https://dotnet.microsoft.com/download
+
 2. 📂 Открытие проекта
 Скачайте исходный код или откройте уже имеющийся проект в Visual Studio.
 В меню File → Open → Project/Solution , выберите файл CameraApp.csproj или папку с проектом.
+
 3. 📦 Установка библиотек через NuGet
 В вашем проекте используются следующие внешние библиотеки, которые нужно установить через NuGet Package Manager :
 
@@ -15,15 +17,18 @@ Visual Studio (рекомендуется версия 2022 или выше)
 Перейдите в Tools → NuGet Package Manager → Manage NuGet Packages for Solution
 Найдите OpenCvSharp4 и OpenCvSharp4.runtime.win
 Установите их для вашего проекта.
+
 3.2. Установка NAudio
 В том же окне NuGet найдите NAudio
 Установите последнюю стабильную версию библиотеки.
 ⚠️ Примечание: убедитесь, что версии библиотек совместимы с используемой версией .NET. 
 
 4. 🛠 Настройка проекта
+   
 4.1. Целевая платформа
 В обозревателе решений щёлкните правой кнопкой мыши на вашем проекте → Properties
 В разделе Application установите Target framework : .NET 5.0 или .NET 6.0.
+
 4.2. Добавление ссылок
 Убедитесь, что подключены следующие сборки:
 
@@ -70,7 +75,6 @@ namespace CameraApp
         private bool recordAudio = false;
         private Timer recordingIndicatorTimer;
         private bool recordingIndicatorVisible = false;
-
         public Form1()
         {
             InitializeComponent();
@@ -80,7 +84,6 @@ namespace CameraApp
             videoPictureBox.MinimumSize = new System.Drawing.Size(1, 1);
             SetupRecordingIndicator();
         }
-
         private void SetupRecordingIndicator()
         {
             recordingIndicatorTimer = new Timer
@@ -93,7 +96,6 @@ namespace CameraApp
                 videoPictureBox.Invalidate();
             };
         }
-
         private void FindAvailableCameras()
         {
             for (int i = 0; i < 10; i++)
@@ -112,7 +114,6 @@ namespace CameraApp
             else
                 MessageBox.Show("Камеры не найдены.", "Предупреждение", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
-
         private void PopulateMicrophones()
         {
             microphoneComboBox.Items.Clear();
@@ -123,7 +124,6 @@ namespace CameraApp
                 recordAudioCheckBox.Enabled = false;
                 return;
             }
-
             for (int i = 0; i < deviceCount; i++)
             {
                 var capabilities = WaveIn.GetCapabilities(i);
@@ -132,7 +132,6 @@ namespace CameraApp
             if (microphoneComboBox.Items.Count > 0)
                 microphoneComboBox.SelectedIndex = 0;
         }
-
         private void StartCamera()
         {
             if (cameraComboBox.SelectedIndex == -1)
@@ -158,7 +157,6 @@ namespace CameraApp
             }
             Application.Idle += UpdateVideo;
         }
-
         private void UpdateVideo(object sender, EventArgs e)
         {
             using (var frame = capture.RetrieveMat())
@@ -191,7 +189,6 @@ namespace CameraApp
                 }
             }
         }
-
         private bool SupportsHardwareZoom()
         {
             if (capture == null || !capture.IsOpened())
@@ -199,7 +196,6 @@ namespace CameraApp
             double zoomValue = capture.Get(VideoCaptureProperties.Zoom);
             return !double.IsNaN(zoomValue) && zoomValue >= 0;
         }
-
         private void ApplyHardwareZoom(double zoom)
         {
             if (capture != null && capture.IsOpened())
@@ -207,7 +203,6 @@ namespace CameraApp
                 capture.Set(VideoCaptureProperties.Zoom, zoom);
             }
         }
-
         private Mat ApplyZoom(Mat frame)
         {
             if (Math.Abs(zoomFactor - 1.0) < 0.01 || SupportsHardwareZoom())
@@ -218,7 +213,6 @@ namespace CameraApp
             Cv2.Resize(frame, zoomedFrame, new OpenCvSharp.Size((int)(frame.Width * zoomFactor), (int)(frame.Height * zoomFactor)));
             return zoomedFrame;
         }
-
         private Mat ResizeFrameToFit(Mat frame, System.Drawing.Size pictureBoxSize)
         {
             if (pictureBoxSize.Width <= 0 || pictureBoxSize.Height <= 0)
@@ -237,7 +231,6 @@ namespace CameraApp
             Cv2.Resize(frame, resizedFrame, new OpenCvSharp.Size(newWidth, newHeight));
             return resizedFrame;
         }
-
         private void ToggleRecording()
         {
             if (capture == null || !capture.IsOpened())
@@ -245,7 +238,6 @@ namespace CameraApp
                 MessageBox.Show("Камера не запущена.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-
             if (!isRecording)
             {
                 // Video file selection
@@ -253,7 +245,6 @@ namespace CameraApp
                 {
                     Title = "Сохранить видео как"
                 };
-
                 string selectedFormat = formatComboBox.SelectedItem.ToString();
                 switch (selectedFormat)
                 {
@@ -273,12 +264,9 @@ namespace CameraApp
                         MessageBox.Show("Неподдерживаемый формат.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         return;
                 }
-
                 if (videoSaveFileDialog.ShowDialog() != DialogResult.OK)
                     return;
-
                 finalVideoFilePath = videoSaveFileDialog.FileName;
-
                 // Audio file selection (if enabled)
                 finalAudioFilePath = null;
                 recordAudio = recordAudioCheckBox.Checked && recordAudioCheckBox.Enabled;
@@ -301,17 +289,14 @@ namespace CameraApp
                         finalAudioFilePath = audioSaveFileDialog.FileName;
                     }
                 }
-
                 int width = GetValidValue((int)capture.Get(VideoCaptureProperties.FrameWidth), 640);
                 int height = GetValidValue((int)capture.Get(VideoCaptureProperties.FrameHeight), 480);
                 double fps = GetValidValue(capture.Get(VideoCaptureProperties.Fps), 30);
-
                 if (width <= 0 || height <= 0 || fps <= 0)
                 {
                     MessageBox.Show("Некорректные параметры видеопотока.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
-
                 FourCC fourcc;
                 switch (selectedFormat)
                 {
@@ -329,19 +314,16 @@ namespace CameraApp
                         MessageBox.Show("Неподдерживаемый формат.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         return;
                 }
-
                 videoWriter = new VideoWriter(finalVideoFilePath, fourcc, fps, new OpenCvSharp.Size(width, height));
                 if (!videoWriter.IsOpened())
                 {
                     MessageBox.Show("Не удалось начать запись.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
-
                 if (recordAudio)
                 {
                     StartAudioRecording();
                 }
-
                 isRecording = true;
                 recordButton.Text = "Остановить запись";
                 recordingIndicatorTimer.Start();
@@ -353,15 +335,12 @@ namespace CameraApp
                 recordingIndicatorTimer.Stop();
                 recordingIndicatorVisible = false;
                 videoPictureBox.Invalidate();
-
                 videoWriter?.Release();
                 videoWriter = null;
-
                 if (recordAudio)
                 {
                     StopAudioRecording();
                 }
-
                 if (recordAudio && finalAudioFilePath != null)
                 {
                     MessageBox.Show($"Видео сохранено в: {finalVideoFilePath}\nАудио сохранено в: {finalAudioFilePath}", "Запись завершена", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -372,7 +351,6 @@ namespace CameraApp
                 }
             }
         }
-
         private void StartAudioRecording()
         {
             try
@@ -384,10 +362,8 @@ namespace CameraApp
                     recordAudioCheckBox.Checked = false;
                     return;
                 }
-
                 if (File.Exists(finalAudioFilePath))
                     File.Delete(finalAudioFilePath);
-
                 waveIn = new WaveInEvent
                 {
                     DeviceNumber = microphoneComboBox.SelectedIndex,
@@ -413,7 +389,6 @@ namespace CameraApp
                 waveFileWriter?.Dispose();
             }
         }
-
         private void StopAudioRecording()
         {
             waveIn?.StopRecording();
@@ -422,7 +397,6 @@ namespace CameraApp
             waveFileWriter?.Dispose();
             waveFileWriter = null;
         }
-
         private void OnAudioDataAvailable(object sender, WaveInEventArgs e)
         {
             if (waveFileWriter != null)
@@ -431,23 +405,19 @@ namespace CameraApp
                 waveFileWriter.Flush();
             }
         }
-
         private int GetValidValue(int value, int defaultValue)
         {
             return value > 0 ? value : defaultValue;
         }
-
         private double GetValidValue(double value, double defaultValue)
         {
             return value > 0 ? value : defaultValue;
         }
-
         private void AdjustSpeed(object sender, EventArgs e)
         {
             speedMultiplier = speedTrackBar.Value;
             speedLabel.Text = $"Скорость: {speedMultiplier}";
         }
-
         private void ZoomIn()
         {
             zoomFactor += 0.1;
@@ -456,7 +426,6 @@ namespace CameraApp
                 ApplyHardwareZoom(zoomFactor * 100);
             }
         }
-
         private void ZoomOut()
         {
             zoomFactor = Math.Max(zoomFactor - 0.1, 0.1);
@@ -465,7 +434,6 @@ namespace CameraApp
                 ApplyHardwareZoom(zoomFactor * 100);
             }
         }
-
         private void PanLeft()
         {
             if (capture != null)
@@ -474,7 +442,6 @@ namespace CameraApp
                 capture.Set(VideoCaptureProperties.Pan, currentPan - speedMultiplier);
             }
         }
-
         private void PanRight()
         {
             if (capture != null)
@@ -483,7 +450,6 @@ namespace CameraApp
                 capture.Set(VideoCaptureProperties.Pan, currentPan + speedMultiplier);
             }
         }
-
         private void TiltUp()
         {
             if (capture != null)
@@ -492,7 +458,6 @@ namespace CameraApp
                 capture.Set(VideoCaptureProperties.Tilt, currentTilt + speedMultiplier);
             }
         }
-
         private void TiltDown()
         {
             if (capture != null)
@@ -501,7 +466,6 @@ namespace CameraApp
                 capture.Set(VideoCaptureProperties.Tilt, currentTilt - speedMultiplier);
             }
         }
-
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (capture != null && capture.IsOpened())
@@ -514,7 +478,6 @@ namespace CameraApp
                 videoWriter.Release();
             recordingIndicatorTimer?.Dispose();
         }
-
         private void Form1_Resize(object sender, EventArgs e)
         {
             if (videoPictureBox != null)
@@ -522,7 +485,6 @@ namespace CameraApp
                 videoPictureBox.Invalidate();
             }
         }
-
         private void VideoPictureBox_Paint(object sender, PaintEventArgs e)
         {
             if (isRecording && recordingIndicatorVisible)
@@ -540,6 +502,7 @@ namespace CameraApp
         }
     }
 }
+
 
 Form1.designer.cs:
 
@@ -567,7 +530,6 @@ namespace CameraApp
         private ComboBox microphoneComboBox;
         private CheckBox recordAudioCheckBox;
         private Button toggleFullScreenButton;
-
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null))
@@ -576,7 +538,6 @@ namespace CameraApp
             }
             base.Dispose(disposing);
         }
-
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
@@ -596,13 +557,11 @@ namespace CameraApp
             this.microphoneComboBox = new ComboBox();
             this.recordAudioCheckBox = new CheckBox();
             this.toggleFullScreenButton = new Button();
-
             // videoPictureBox
             this.videoPictureBox.Dock = DockStyle.Fill;
             this.videoPictureBox.BackColor = Color.Black;
             this.videoPictureBox.SizeMode = PictureBoxSizeMode.Zoom;
             this.videoPictureBox.Paint += VideoPictureBox_Paint;
-
             // cameraComboBox
             this.cameraComboBox.Dock = DockStyle.Top;
             this.cameraComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
@@ -610,7 +569,6 @@ namespace CameraApp
             this.cameraComboBox.Height = 30;
             this.cameraComboBox.Font = new Font("Arial", 10);
             this.cameraComboBox.Margin = new Padding(0, 5, 0, 10);
-
             // startButton
             this.startButton.Dock = DockStyle.Top;
             this.startButton.Text = "Запустить";
@@ -621,7 +579,6 @@ namespace CameraApp
             this.startButton.Height = 40;
             this.startButton.Font = new Font("Arial", 10);
             this.startButton.Click += (s, e) => StartCamera();
-
             // recordButton
             this.recordButton.Dock = DockStyle.Top;
             this.recordButton.Text = "Начать запись";
@@ -632,7 +589,6 @@ namespace CameraApp
             this.recordButton.Height = 40;
             this.recordButton.Font = new Font("Arial", 10);
             this.recordButton.Click += (s, e) => ToggleRecording();
-
             // speedTrackBar
             this.speedTrackBar.Dock = DockStyle.Top;
             this.speedTrackBar.Minimum = 1;
@@ -643,14 +599,12 @@ namespace CameraApp
             this.speedTrackBar.Height = 30;
             this.speedTrackBar.Margin = new Padding(0, 5, 0, 10);
             this.speedTrackBar.Scroll += AdjustSpeed;
-
             // speedLabel
             this.speedLabel.Dock = DockStyle.Top;
             this.speedLabel.Text = "Скорость: 1";
             this.speedLabel.Font = new Font("Arial", 10);
             this.speedLabel.AutoSize = true;
             this.speedLabel.Margin = new Padding(0, 5, 0, 10);
-
             // zoomInButton
             this.zoomInButton.Dock = DockStyle.Top;
             this.zoomInButton.Text = "Зум +";
@@ -659,7 +613,6 @@ namespace CameraApp
             this.zoomInButton.Height = 40;
             this.zoomInButton.Font = new Font("Arial", 10);
             this.zoomInButton.Click += (s, e) => ZoomIn();
-
             // zoomOutButton
             this.zoomOutButton.Dock = DockStyle.Top;
             this.zoomOutButton.Text = "Зум -";
@@ -668,7 +621,6 @@ namespace CameraApp
             this.zoomOutButton.Height = 40;
             this.zoomOutButton.Font = new Font("Arial", 10);
             this.zoomOutButton.Click += (s, e) => ZoomOut();
-
             // panLeftButton
             this.panLeftButton.Dock = DockStyle.Top;
             this.panLeftButton.Text = "◄";
@@ -677,7 +629,6 @@ namespace CameraApp
             this.panLeftButton.Height = 40;
             this.panLeftButton.Font = new Font("Arial", 10);
             this.panLeftButton.Click += (s, e) => PanLeft();
-
             // panRightButton
             this.panRightButton.Dock = DockStyle.Top;
             this.panRightButton.Text = "►";
@@ -686,7 +637,6 @@ namespace CameraApp
             this.panRightButton.Height = 40;
             this.panRightButton.Font = new Font("Arial", 10);
             this.panRightButton.Click += (s, e) => PanRight();
-
             // tiltUpButton
             this.tiltUpButton.Dock = DockStyle.Top;
             this.tiltUpButton.Text = "▲";
@@ -695,7 +645,6 @@ namespace CameraApp
             this.tiltUpButton.Height = 40;
             this.tiltUpButton.Font = new Font("Arial", 10);
             this.tiltUpButton.Click += (s, e) => TiltUp();
-
             // tiltDownButton
             this.tiltDownButton.Dock = DockStyle.Top;
             this.tiltDownButton.Text = "▼";
@@ -704,7 +653,6 @@ namespace CameraApp
             this.tiltDownButton.Height = 40;
             this.tiltDownButton.Font = new Font("Arial", 10);
             this.tiltDownButton.Click += (s, e) => TiltDown();
-
             // formatComboBox
             this.formatComboBox.Dock = DockStyle.Top;
             this.formatComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
@@ -714,7 +662,6 @@ namespace CameraApp
             this.formatComboBox.Height = 30;
             this.formatComboBox.Font = new Font("Arial", 10);
             this.formatComboBox.Margin = new Padding(0, 5, 0, 10);
-
             // microphoneComboBox
             this.microphoneComboBox.Dock = DockStyle.Top;
             this.microphoneComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
@@ -722,7 +669,6 @@ namespace CameraApp
             this.microphoneComboBox.Height = 30;
             this.microphoneComboBox.Font = new Font("Arial", 10);
             this.microphoneComboBox.Margin = new Padding(0, 5, 0, 10);
-
             // recordAudioCheckBox
             this.recordAudioCheckBox.Dock = DockStyle.Top;
             this.recordAudioCheckBox.Text = "Записывать звук";
@@ -730,7 +676,6 @@ namespace CameraApp
             this.recordAudioCheckBox.Font = new Font("Arial", 10);
             this.recordAudioCheckBox.AutoSize = true;
             this.recordAudioCheckBox.Margin = new Padding(0, 5, 0, 10);
-
             // toggleFullScreenButton
             this.toggleFullScreenButton.Dock = DockStyle.Top;
             this.toggleFullScreenButton.Text = "Оконный режим";
@@ -746,20 +691,16 @@ namespace CameraApp
                 this.WindowState = this.WindowState == FormWindowState.Maximized ? FormWindowState.Normal : FormWindowState.Maximized;
                 this.toggleFullScreenButton.Text = this.WindowState == FormWindowState.Maximized ? "Оконный режим" : "Полноэкранный режим";
             };
-
             // MainForm
             this.Text = "Камера: Управление и Настройки";
             this.WindowState = FormWindowState.Maximized;
             this.MinimumSize = new System.Drawing.Size(640, 480);
             this.FormClosing += Form1_FormClosing;
-
             // Panels
             var mainPanel = new Panel { Dock = DockStyle.Fill };
             var controlPanel = new Panel { Dock = DockStyle.Right, Width = 350, BackColor = Color.FromArgb(240, 240, 240) };
-
             // Add videoPictureBox to mainPanel
             mainPanel.Controls.Add(videoPictureBox);
-
             // Add controls to controlPanel in order
             controlPanel.Controls.AddRange(new Control[]
             {
@@ -779,7 +720,6 @@ namespace CameraApp
                 recordAudioCheckBox,
                 toggleFullScreenButton
             });
-
             // Add panels to form
             this.Controls.Add(mainPanel);
             this.Controls.Add(controlPanel);
